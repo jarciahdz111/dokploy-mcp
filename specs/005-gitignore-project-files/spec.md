@@ -5,6 +5,12 @@
 **Status**: Draft
 **Input**: User description: "crear spec para garantizar archivos necesarios del proyecto y gitignore robusto para el paquete npm @jarciahdz111/dokploy-mcp, incluyendo verificar que todos los archivos esenciales existan y que el gitignore sea completo"
 
+## Clarifications
+
+### Session 2026-04-01
+
+- Q: Should we validate and document unnecessary directories (besides essential files)? → A: Yes, validate and explicitly document unnecessary directories (node_modules, dist, build, coverage, specs, .github/workflows, .claude)
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Gitignore Protection (Priority: P1)
@@ -62,6 +68,7 @@ As a maintainer, I want the `.npmignore` file to work correctly with the `files`
 - What if `node_modules` is accidentally committed before `.gitignore` is added?
 - What if the `files` field in `package.json` conflicts with `.npmignore`?
 - What if someone needs to add a new pattern to `.gitignore` for their development workflow?
+- What if `specs/` directory (documentation/SPEC.md files) is accidentally committed to npm?
 
 ## Requirements
 
@@ -75,6 +82,7 @@ As a maintainer, I want the `.npmignore` file to work correctly with the `files`
 - **FR-006**: The `.npmignore` MUST exclude `src/`, `*.ts`, `test-mcp.js`, `test-mcp.sh`, `CLAUDE.md`, `.git/`, `.github/`, `.claude/`.
 - **FR-007**: The `LICENSE` file MUST contain MIT license text.
 - **FR-008**: The `package.json` MUST have valid `name` (scoped `@jarciahdz111/dokploy-mcp`), `version`, `description`, `license` (MIT), `repository`, `bin`, and `engines` fields.
+- **FR-009**: The `.gitignore` MUST exclude unnecessary directories: `node_modules/`, `dist/`, `build/`, `coverage/`, `specs/`, `.github/` (source files), `.claude/`.
 
 ### Key Entities
 
@@ -83,6 +91,20 @@ As a maintainer, I want the `.npmignore` file to work correctly with the `files`
 - **`package.json`**: NPM package metadata with `files` field controlling publication
 - **`LICENSE`**: MIT license file required for npm publication
 - **`README.md`**: Documentation file included in npm package
+
+### Unnecessary Directories (Must be Excluded)
+
+These directories MUST NOT be committed to git or published to npm:
+
+| Directory | Reason |
+|----------|--------|
+| `node_modules/` | Dependencies installed via npm |
+| `dist/` | Build output (compiled JS - only this goes to npm via `files` field) |
+| `build/` | Alternative build output directory |
+| `coverage/` | Test coverage reports |
+| `specs/` | SPEC.md documentation files (development artifact) |
+| `.github/` | GitHub workflows and config (not needed in npm package) |
+| `.claude/` | Claude Code working files and memory |
 
 ## Success Criteria
 
@@ -94,6 +116,7 @@ As a maintainer, I want the `.npmignore` file to work correctly with the `files`
 - **SC-004**: `.gitignore` contains at least 15 common patterns for Node.js projects.
 - **SC-005**: `.npmignore` correctly excludes source files but includes README.md and LICENSE.
 - **SC-006**: `package.json` `files` field is set to `["dist"]` only.
+- **SC-007**: `git status` shows no untracked files from unnecessary directories (node_modules, dist, build, coverage, specs, .github, .claude).
 
 ## Assumptions
 
