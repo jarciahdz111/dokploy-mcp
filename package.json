@@ -1,0 +1,52 @@
+{
+  "name": "@jarciahdz111/dokploy-mcp",
+  "version": "0.28.8",
+  "description": "MCP server for Dokploy API — 100% endpoint coverage auto-generated from OpenAPI spec",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "dokploy-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc && cp src/openapi-spec.json dist/openapi-spec.json && chmod +x dist/index.js",
+    "clean": "rm -rf dist",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "modelcontextprotocol",
+    "dokploy",
+    "deploy",
+    "devops",
+    "docker",
+    "trpc"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jarciahdz111/dokploy-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jarciahdz111/dokploy-mcp/issues"
+  },
+  "homepage": "https://github.com/jarciahdz111/dokploy-mcp#readme",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "axios": "^1.7.9",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

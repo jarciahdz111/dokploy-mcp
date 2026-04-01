@@ -1,0 +1,14 @@
+src/
+*.ts
+tsconfig.json
+test-mcp.js
+test-mcp.sh
+CLAUDE.md
+README.md
+LICENSE
+.git/
+.github/
+.claude/
+*.log
+node_modules/
+dist/*.map
