@@ -88,3 +88,13 @@ Since tools are code-generated, edit `src/openapi-spec.json` (or replace it with
 | `src/services/formatters.ts` | Response formatting and truncation |
 | `src/services/logger.ts` | Structured JSON logging to stderr (levels: error/warn/info/debug, DEBUG=1 enables debug) |
 | `src/constants.ts` | `DOKPLOY_URL`, `DOKPLOY_API_KEY`, `REQUEST_TIMEOUT_MS`, `CHARACTER_LIMIT` |
+
+## Security Considerations
+
+- **API key handling**: `DOKPLOY_API_KEY` is read from environment variables only and is never logged, even in debug mode.
+- **Debug logging**: `DEBUG=1` enables structured JSON logging to stderr with endpoint names and truncated input previews only — no API keys, tokens, or full URLs with query parameters are logged.
+- **Endpoint validation**: All tRPC endpoint names are validated against a whitelist pattern (`namespace.action`) before making API calls.
+- **Request size limits**: Request bodies are limited to 1MB to prevent memory exhaustion.
+- **Error messages**: All error messages are sanitized to not expose internal implementation details, credentials, or stack traces.
+- **Supply chain**: The `.npmrc` enforces `npm audit` on install. The release workflow uses OIDC-based provenance attestation for SLSA compliance.
+
