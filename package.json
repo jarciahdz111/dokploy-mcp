@@ -1,6 +1,6 @@
 {
   "name": "@jarciahdz111/dokploy-mcp",
-  "version": "0.29.0",
+  "version": "0.30.0",
   "description": "MCP server for Dokploy API — 100% endpoint coverage auto-generated from OpenAPI spec",
   "type": "module",
   "main": "dist/index.js",
