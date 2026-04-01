@@ -10,6 +10,39 @@
 import axios from "axios";
 import { DOKPLOY_URL, DOKPLOY_API_KEY, REQUEST_TIMEOUT_MS } from "../constants.js";
 import { logger } from "./logger.js";
+/**
+ * Maximum request body size (1MB) to prevent memory exhaustion.
+ */
+const MAX_REQUEST_SIZE = 1_000_000;
+/**
+ * Validates endpoint format: must match pattern like "project.all", "application.deploy", etc.
+ * This prevents arbitrary endpoint injection if an attacker gains control of tool invocation.
+ */
+const ALLOWED_ENDPOINT_PATTERN = /^([a-z]+)\.([a-z_]+)$/;
+function validateEndpoint(endpoint) {
+    if (!ALLOWED_ENDPOINT_PATTERN.test(endpoint)) {
+        throw new Error(`Invalid endpoint format: ${endpoint}`);
+    }
+}
+/**
+ * Validates request body size to prevent memory exhaustion.
+ */
+function validateRequestSize(input) {
+    if (input) {
+        const size = JSON.stringify(input).length;
+        if (size > MAX_REQUEST_SIZE) {
+            throw new Error(`Request body too large: ${size} bytes (max: ${MAX_REQUEST_SIZE})`);
+        }
+    }
+}
+/**
+ * Truncates a string for logging purposes.
+ */
+function truncate(str, maxLength) {
+    if (str.length <= maxLength)
+        return str;
+    return str.slice(0, maxLength) + "...";
+}
 function getBaseUrl() {
     if (!DOKPLOY_URL) {
         throw new Error("DOKPLOY_URL environment variable is not set");
@@ -74,6 +107,8 @@ function parseTrpcError(data) {
  * @param input - Optional input parameters
  */
 export async function trpcQuery(endpoint, input) {
+    validateEndpoint(endpoint);
+    validateRequestSize(input);
     const baseUrl = getBaseUrl();
     let url = `${baseUrl}/trpc/${endpoint}`;
     if (input && Object.keys(input).length > 0) {
@@ -81,7 +116,10 @@ export async function trpcQuery(endpoint, input) {
         url += `?input=${encodedInput}`;
     }
     const startTime = Date.now();
-    logger.debug(`[GET] ${endpoint}`, { url });
+    // Log endpoint name and truncated input only — never log full URL with query params
+    logger.debug(`[GET] ${endpoint}`, {
+        input: input ? truncate(JSON.stringify(input), 200) : undefined,
+    });
     try {
         const response = await axios.get(url, {
             headers: buildHeaders(),
@@ -104,10 +142,15 @@ export async function trpcQuery(endpoint, input) {
  * @param input - Optional input parameters
  */
 export async function trpcMutation(endpoint, input) {
+    validateEndpoint(endpoint);
+    validateRequestSize(input);
     const baseUrl = getBaseUrl();
     const url = `${baseUrl}/trpc/${endpoint}`;
     const startTime = Date.now();
-    logger.debug(`[POST] ${endpoint}`, { url });
+    // Log endpoint name and truncated input only — never log full URL with query params
+    logger.debug(`[POST] ${endpoint}`, {
+        input: input ? truncate(JSON.stringify(input), 200) : undefined,
+    });
     try {
         const response = await axios.post(url, input ?? {}, {
             headers: buildHeaders(),
