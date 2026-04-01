@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { DOKPLOY_URL, DOKPLOY_API_KEY } from "./constants.js";
 import { registerAllTools } from "./generator/tool-generator.js";
+import { logger } from "./services/logger.js";
 async function main() {
     // Validate required environment variables
     if (!DOKPLOY_URL) {
@@ -45,15 +46,14 @@ async function main() {
     });
     // Auto-register all tools from the OpenAPI spec
     const toolCount = registerAllTools(server, spec);
-    console.error(`Dokploy MCP Server: Registered ${toolCount} tools from OpenAPI spec`);
-    console.error(`API URL: ${DOKPLOY_URL}`);
+    logger.info("Dokploy MCP Server started", { toolCount });
+    logger.info(`API URL: ${DOKPLOY_URL}`);
     // Start the stdio transport
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("Dokploy MCP Server running via stdio");
 }
 main().catch((error) => {
-    console.error("Fatal error:", error);
+    logger.error("Fatal error", { error: error instanceof Error ? error.message : String(error) });
     process.exit(1);
 });
 //# sourceMappingURL=index.js.map

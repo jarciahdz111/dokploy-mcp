@@ -8,7 +8,8 @@
  * - Errors are wrapped:   { error: { json: { message, code, data } } }
  */
 import axios from "axios";
-import { DOKPLOY_URL, DOKPLOY_API_KEY, DEFAULT_TIMEOUT } from "../constants.js";
+import { DOKPLOY_URL, DOKPLOY_API_KEY, REQUEST_TIMEOUT_MS } from "../constants.js";
+import { logger } from "./logger.js";
 function getBaseUrl() {
     if (!DOKPLOY_URL) {
         throw new Error("DOKPLOY_URL environment variable is not set");
@@ -79,14 +80,20 @@ export async function trpcQuery(endpoint, input) {
         const encodedInput = encodeURIComponent(JSON.stringify(input));
         url += `?input=${encodedInput}`;
     }
+    const startTime = Date.now();
+    logger.debug(`[GET] ${endpoint}`, { url });
     try {
         const response = await axios.get(url, {
             headers: buildHeaders(),
-            timeout: DEFAULT_TIMEOUT,
+            timeout: REQUEST_TIMEOUT_MS,
         });
+        const durationMs = Date.now() - startTime;
+        logger.debug(`${endpoint} succeeded`, { durationMs, status: response.status });
         return unwrapResponse(response.data);
     }
     catch (error) {
+        const durationMs = Date.now() - startTime;
+        logger.debug(`${endpoint} failed`, { durationMs });
         throw new Error(handleApiError(error));
     }
 }
@@ -99,14 +106,20 @@ export async function trpcQuery(endpoint, input) {
 export async function trpcMutation(endpoint, input) {
     const baseUrl = getBaseUrl();
     const url = `${baseUrl}/trpc/${endpoint}`;
+    const startTime = Date.now();
+    logger.debug(`[POST] ${endpoint}`, { url });
     try {
         const response = await axios.post(url, input ?? {}, {
             headers: buildHeaders(),
-            timeout: DEFAULT_TIMEOUT,
+            timeout: REQUEST_TIMEOUT_MS,
         });
+        const durationMs = Date.now() - startTime;
+        logger.debug(`${endpoint} succeeded`, { durationMs, status: response.status });
         return unwrapResponse(response.data);
     }
     catch (error) {
+        const durationMs = Date.now() - startTime;
+        logger.debug(`${endpoint} failed`, { durationMs });
         throw new Error(handleApiError(error));
     }
 }
@@ -131,8 +144,16 @@ export function handleApiError(error) {
                     return "Error: Forbidden. You don't have permission for this operation.";
                 case 404:
                     return "Error: Resource not found. Check the ID is correct.";
-                case 429:
+                case 429: {
+                    const retryAfter = axiosErr.response.headers["retry-after"];
+                    if (retryAfter) {
+                        const waitSeconds = Number(retryAfter) || parseInt(String(retryAfter), 10);
+                        if (!isNaN(waitSeconds)) {
+                            return `Error: Rate limit exceeded. Retry after ${waitSeconds} seconds.`;
+                        }
+                    }
                     return "Error: Rate limit exceeded. Please wait before making more requests.";
+                }
                 case 500:
                     return "Error: Internal server error on Dokploy. Try again later.";
                 default:
