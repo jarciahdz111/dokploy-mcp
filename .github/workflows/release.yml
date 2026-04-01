@@ -25,7 +25,6 @@ jobs:
 
       - name: Pack
         run: npm pack --dry-run
-        working-directory: dist
 
   publish:
     runs-on: ubuntu-latest
