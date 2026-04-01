@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__filesystem__directory_tree",
-      "WebFetch(domain:github.com)",
-      "Read(//Users/jesusarciahdz/Library/**)"
-    ]
-  }
-}
