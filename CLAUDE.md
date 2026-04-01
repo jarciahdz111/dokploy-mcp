@@ -26,6 +26,10 @@ npm run clean
 - `DOKPLOY_URL` — Dokploy API base URL (e.g., `https://your-dokploy.com/api`)
 - `DOKPLOY_API_KEY` — API key from Dokploy Settings → API Keys
 
+**Optional environment variables:**
+- `REQUEST_TIMEOUT_MS` — HTTP request timeout in milliseconds (default: `30000`)
+- `DEBUG` — Set to `1` to enable structured JSON debug logging to stderr
+
 ## Architecture
 
 The server is **fully auto-generated** from `src/openapi-spec.json`. You do not hand-write API client code — regenerate tools by updating the spec and rebuilding.
@@ -82,4 +86,5 @@ Since tools are code-generated, edit `src/openapi-spec.json` (or replace it with
 | `src/generator/name-mapper.ts` | Path-to-tool-name mapping and annotation logic |
 | `src/services/api-client.ts` | tRPC-aware HTTP client (query/mutation, unwrapping, error handling) |
 | `src/services/formatters.ts` | Response formatting and truncation |
-| `src/constants.ts` | `DOKPLOY_URL`, `DOKPLOY_API_KEY`, `DEFAULT_TIMEOUT`, `CHARACTER_LIMIT` |
+| `src/services/logger.ts` | Structured JSON logging to stderr (levels: error/warn/info/debug, DEBUG=1 enables debug) |
+| `src/constants.ts` | `DOKPLOY_URL`, `DOKPLOY_API_KEY`, `REQUEST_TIMEOUT_MS`, `CHARACTER_LIMIT` |

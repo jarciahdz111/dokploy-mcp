@@ -50,12 +50,34 @@ Add this to your Claude Desktop config file:
 
 Then restart Claude Desktop.
 
+### Claude Code CLI Configuration
+
+If you use the Claude Code CLI (`claude` command), add this to `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "dokploy": {
+      "command": "dokploy-mcp",
+      "env": {
+        "DOKPLOY_URL": "https://your-dokploy.com/api",
+        "DOKPLOY_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+Then restart your terminal or run `claude` to load the configuration.
+
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DOKPLOY_URL` | Your Dokploy API URL (e.g., `https://cloud.dokploy.com/api`) | Yes |
-| `DOKPLOY_API_KEY` | API key from Dokploy Settings → API Keys | Yes |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `DOKPLOY_URL` | Your Dokploy API URL (e.g., `https://cloud.dokploy.com/api`) | Yes | — |
+| `DOKPLOY_API_KEY` | API key from Dokploy Settings → API Keys | Yes | — |
+| `REQUEST_TIMEOUT_MS` | HTTP request timeout in milliseconds | No | `30000` |
+| `DEBUG` | Set to `1` to enable debug logging (JSON to stderr) | No | — |
 
 ## Available Tools
 

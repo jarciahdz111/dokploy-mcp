@@ -9,7 +9,8 @@
  */
 
 import axios, { AxiosError } from "axios";
-import { DOKPLOY_URL, DOKPLOY_API_KEY, DEFAULT_TIMEOUT } from "../constants.js";
+import { DOKPLOY_URL, DOKPLOY_API_KEY, REQUEST_TIMEOUT_MS } from "../constants.js";
+import { logger } from "./logger.js";
 
 function getBaseUrl(): string {
   if (!DOKPLOY_URL) {
@@ -92,13 +93,19 @@ export async function trpcQuery<T = unknown>(
     url += `?input=${encodedInput}`;
   }
 
+  const startTime = Date.now();
+  logger.debug(`[GET] ${endpoint}`, { url });
   try {
     const response = await axios.get(url, {
       headers: buildHeaders(),
-      timeout: DEFAULT_TIMEOUT,
+      timeout: REQUEST_TIMEOUT_MS,
     });
+    const durationMs = Date.now() - startTime;
+    logger.debug(`${endpoint} succeeded`, { durationMs, status: response.status });
     return unwrapResponse<T>(response.data);
   } catch (error) {
+    const durationMs = Date.now() - startTime;
+    logger.debug(`${endpoint} failed`, { durationMs });
     throw new Error(handleApiError(error));
   }
 }
@@ -116,13 +123,19 @@ export async function trpcMutation<T = unknown>(
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/trpc/${endpoint}`;
 
+  const startTime = Date.now();
+  logger.debug(`[POST] ${endpoint}`, { url });
   try {
     const response = await axios.post(url, input ?? {}, {
       headers: buildHeaders(),
-      timeout: DEFAULT_TIMEOUT,
+      timeout: REQUEST_TIMEOUT_MS,
     });
+    const durationMs = Date.now() - startTime;
+    logger.debug(`${endpoint} succeeded`, { durationMs, status: response.status });
     return unwrapResponse<T>(response.data);
   } catch (error) {
+    const durationMs = Date.now() - startTime;
+    logger.debug(`${endpoint} failed`, { durationMs });
     throw new Error(handleApiError(error));
   }
 }
@@ -150,8 +163,16 @@ export function handleApiError(error: unknown): string {
           return "Error: Forbidden. You don't have permission for this operation.";
         case 404:
           return "Error: Resource not found. Check the ID is correct.";
-        case 429:
+        case 429: {
+          const retryAfter = axiosErr.response.headers["retry-after"];
+          if (retryAfter) {
+            const waitSeconds = Number(retryAfter) || parseInt(String(retryAfter), 10);
+            if (!isNaN(waitSeconds)) {
+              return `Error: Rate limit exceeded. Retry after ${waitSeconds} seconds.`;
+            }
+          }
           return "Error: Rate limit exceeded. Please wait before making more requests.";
+        }
         case 500:
           return "Error: Internal server error on Dokploy. Try again later.";
         default:
