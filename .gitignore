@@ -38,4 +38,5 @@ coverage/
 # Project-specific (not needed in npm package)
 specs/
 .github/
+!.github/workflows/
 .claude/
